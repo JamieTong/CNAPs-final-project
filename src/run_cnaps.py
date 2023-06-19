@@ -39,6 +39,7 @@ from utils import print_and_log, get_log_files, ValidationAccuracies, loss, aggr
 from model import Cnaps
 # from meta_dataset_reader import MetaDatasetReader, SingleDatasetReader
 from prepare_task import DogDataSetLoader
+from dog_dataset_reader import DogDatasetReader
 
 
 NUM_VALIDATION_TASKS = 200
@@ -54,7 +55,7 @@ def main():
 class Learner:
     def __init__(self):
         self.args = self.parse_command_line()
-        data_dir = "/Users/jamie/Desktop/AI/final_project/data/split_data"
+        data_dir = "/content/CNAPs-final-project/data/split_data"
         mode = "train"
         image_size = 84
         transform = None
@@ -74,16 +75,7 @@ class Learner:
         self.device = torch.device(gpu_device if torch.cuda.is_available() else 'cpu')
         self.model = self.init_model()
         self.dataset = DogDataSetLoader()
-        # self.train_set, self.validation_set, self.test_set = self.dataset.train_data, self.dataset.val_data, self.dataset.test_data
-        # if self.args.dataset == "meta-dataset":
-        #     self.dataset = MetaDatasetReader(self.args.data_path, self.args.mode, self.train_set, self.validation_set,
-        #                                      self.test_set, self.args.max_way_train, self.args.max_way_test,
-        #                                      self.args.max_support_train, self.args.max_support_test)
-        # else:
-        #     self.dataset = SingleDatasetReader(self.args.data_path, self.args.mode, self.args.dataset, self.args.way,
-        #                                        self.args.shot, self.args.query_train, self.args.query_test)
-        # self.train_set = DogDatasetReader(root=os.path.join(os.getcwd(), "data"), set_type="train", transform=preprocess)
-        # validation_set = DogDatasetReader(root=os.path.join(os.getcwd(), "data"), set_type="validation", transform=preprocess)
+        self.validate_set = DogDatasetReader().get_validation_set
         self.loss = loss
         self.accuracy_fn = aggregate_accuracy
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.learning_rate)

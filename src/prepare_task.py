@@ -58,7 +58,7 @@ class DogDataSetLoader(object):
        Indexes are stored in the CSV files.
     """
 
-    def __init__(self, data_dir="/Users/jamie/Desktop/AI/final_project/data/split_data", mode="train", image_size=84,
+    def __init__(self, data_dir="/content/CNAPs-final-project/data/split_data", mode="train", image_size=84,
                  transform=None, loader=default_loader, gray_loader=gray_loader, 
                  episode_num=1000, way_num=5, shot_num=5, query_num=5):
         
