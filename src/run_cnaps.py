@@ -38,7 +38,7 @@ from normalization_layers import TaskNormI
 from utils import print_and_log, get_log_files, ValidationAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir
 from model import Cnaps
 # from meta_dataset_reader import MetaDatasetReader, SingleDatasetReader
-from dog_dataset_reader import DogDatasetReader
+from prepare_task import DogDataSetLoader
 
 
 NUM_VALIDATION_TASKS = 200
@@ -54,6 +54,15 @@ def main():
 class Learner:
     def __init__(self):
         self.args = self.parse_command_line()
+        data_dir = "/Users/jamie/Desktop/AI/final_project/data/split_data"
+        mode = "train"
+        image_size = 84
+        transform = None
+        episode_num = 1000
+        way_num = 5
+        shot_num = 5
+        query_num = 5
+
 
         self.checkpoint_dir, self.logfile, self.checkpoint_path_validation, self.checkpoint_path_final \
             = get_log_files(self.args.checkpoint_dir, self.args.resume_from_checkpoint, self.args.mode == "test")
@@ -64,8 +73,8 @@ class Learner:
         gpu_device = 'cuda:0'
         self.device = torch.device(gpu_device if torch.cuda.is_available() else 'cpu')
         self.model = self.init_model()
-        self.dataset = DogDatasetReader()
-        self.train_set, self.validation_set, self.test_set = self.dataset.train_data, self.dataset.val_data, self.dataset.test_data
+        self.dataset = DogDataSetLoader()
+        # self.train_set, self.validation_set, self.test_set = self.dataset.train_data, self.dataset.val_data, self.dataset.test_data
         # if self.args.dataset == "meta-dataset":
         #     self.dataset = MetaDatasetReader(self.args.data_path, self.args.mode, self.train_set, self.validation_set,
         #                                      self.test_set, self.args.max_way_train, self.args.max_way_test,
@@ -162,12 +171,13 @@ class Learner:
 
     def run(self):
         if self.args.mode == 'train' or self.args.mode == 'train_test':
+            self.dataset = DogDataSetLoader()
             train_accuracies = []
             losses = []
             total_iterations = self.args.training_iterations
             for iteration in range(self.start_iteration, total_iterations):
                 torch.set_grad_enabled(True)
-                task_dict = self.dataset.get_train_task()
+                task_dict = self.dataset.__getitem__()
                 task_loss, task_accuracy = self.train_task(task_dict)
                 train_accuracies.append(task_accuracy)
                 losses.append(task_loss)
