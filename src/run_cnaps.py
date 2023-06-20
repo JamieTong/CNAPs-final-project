@@ -38,8 +38,7 @@ from normalization_layers import TaskNormI
 from utils import print_and_log, get_log_files, ValidationAccuracies, loss, aggregate_accuracy, verify_checkpoint_dir
 from model import Cnaps
 # from meta_dataset_reader import MetaDatasetReader, SingleDatasetReader
-from prepare_task import DogDataSetLoader
-from dog_dataset_reader import DogDatasetReader
+from dog_reader import DogDataSetReader
 
 
 NUM_VALIDATION_TASKS = 200
@@ -74,8 +73,8 @@ class Learner:
         gpu_device = 'cuda:0'
         self.device = torch.device(gpu_device if torch.cuda.is_available() else 'cpu')
         self.model = self.init_model()
-        self.dataset = DogDataSetLoader()
-        self.validate_set = DogDatasetReader().get_validation_set
+        self.train_set, self.validation_set, self.test_set = self.init_data()
+        self.dataset = DogDataSetReader()
         self.loss = loss
         self.accuracy_fn = aggregate_accuracy
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.args.learning_rate)
@@ -99,15 +98,9 @@ class Learner:
         return model
 
     def init_data(self):
-        if self.args.dataset == "meta-dataset":
-            train_set = ['ilsvrc_2012', 'omniglot', 'aircraft', 'cu_birds', 'dtd', 'quickdraw', 'fungi', 'vgg_flower']
-            validation_set = ['ilsvrc_2012', 'omniglot', 'aircraft', 'cu_birds', 'dtd', 'quickdraw', 'fungi', 'vgg_flower',
-                              'mscoco']
-            test_set = self.args.test_datasets
-        else:
-            train_set = [self.args.dataset]
-            validation_set = [self.args.dataset]
-            test_set = [self.args.dataset]
+        train_set = ['dog']
+        validation_set = ['dog']
+        test_set = ['dog']
 
         return train_set, validation_set, test_set
 
@@ -163,7 +156,6 @@ class Learner:
 
     def run(self):
         if self.args.mode == 'train' or self.args.mode == 'train_test':
-            self.dataset = DogDataSetLoader()
             train_accuracies = []
             losses = []
             total_iterations = self.args.training_iterations
