@@ -161,7 +161,7 @@ class Learner:
             total_iterations = self.args.training_iterations
             for iteration in range(self.start_iteration, total_iterations):
                 torch.set_grad_enabled(True)
-                task_dict = self.dataset.__getitem__()
+                task_dict = self.dataset.__getitem__(iteration)
                 task_loss, task_accuracy = self.train_task(task_dict)
                 train_accuracies.append(task_accuracy)
                 losses.append(task_loss)

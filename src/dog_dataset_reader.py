@@ -53,13 +53,13 @@ class DogDatasetReader:
             train_data.extend(images)
             print('Train----%s' %class_name)
             
-            # img_paths = [os.path.join(self.images_folder, class_name, i) for i in os.listdir(os.path.join(self.images_folder, class_name))]
-            # for index, img_path in enumerate(img_paths):
-            #     print(img_path)
-            #     img = Image.open(img_path)
-            #     img = img.convert('RGB')
-            #     print(img)
-            #     img.save(os.path.join(self.save_foler, 'images', images[index][0]), quality=100)
+            img_paths = [os.path.join(self.images_folder, class_name, i) for i in os.listdir(os.path.join(self.images_folder, class_name))]
+            for index, img_path in enumerate(img_paths):
+                print(img_path)
+                img = Image.open(img_path)
+                img = img.convert('RGB')
+                print(img)
+                img.save(os.path.join(self.save_foler, '_images', images[index][0]), quality=100)
         print(len(train_data))
         with open(os.path.join(save_dir, 'train.csv'), 'w') as csvfile:
             writer = csv.writer(csvfile)
@@ -75,11 +75,11 @@ class DogDatasetReader:
             val_data.extend(images)
             print('Validate----%s' %class_name)
 
-            # img_paths = [os.path.join(self.images_folder, class_name, i) for i in os.listdir(os.path.join(self.images_folder, class_name))]
-            # for index, img_path in enumerate(img_paths):
-            #     img = Image.open(img_path)
-            #     img = img.convert('RGB')
-            #     img.save(os.path.join(self.save_foler, 'images', images[index][0]), quality=100)
+            img_paths = [os.path.join(self.images_folder, class_name, i) for i in os.listdir(os.path.join(self.images_folder, class_name))]
+            for index, img_path in enumerate(img_paths):
+                img = Image.open(img_path)
+                img = img.convert('RGB')
+                img.save(os.path.join(self.save_foler, '_images', images[index][0]), quality=100)
         print(len(val_data))
         with open(os.path.join(save_dir, 'val.csv'), 'w') as csvfile:
             writer = csv.writer(csvfile)
@@ -97,18 +97,18 @@ class DogDatasetReader:
             images = [[i, class_name] for i in os.listdir(os.path.join(self.images_folder, class_name))]
             test_data.extend(images)
             print('Test----%s' %class_name)
-            # img_paths = [os.path.join(self.images_folder, class_name, i) for i in os.listdir(os.path.join(self.images_folder, class_name))]
-            # for index, img_path in enumerate(img_paths):
-            #     print(img_path)
-            #     img = Image.open(img_path)
-            #     img = img.convert('RGB')
-            #     img.save(os.path.join(self.save_foler, 'images', images[index][0]), quality=100)
+            img_paths = [os.path.join(self.images_folder, class_name, i) for i in os.listdir(os.path.join(self.images_folder, class_name))]
+            for index, img_path in enumerate(img_paths):
+                print(img_path)
+                img = Image.open(img_path)
+                img = img.convert('RGB')
+                img.save(os.path.join(self.save_foler, '_images', images[index][0]), quality=100)
         print(len(test_data))
         with open(os.path.join(save_dir, 'test.csv'), 'w') as csvfile:
             writer = csv.writer(csvfile)
             writer.writerow(['filename', 'label'])
             writer.writerows(test_data)
-            
+
     def get_validation_set(self):
         return self.val_data
    

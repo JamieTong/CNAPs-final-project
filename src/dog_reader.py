@@ -58,11 +58,11 @@ class DogDataSetReader(object):
        Indexes are stored in the CSV files.
     """
 
-    def __init__(self, data_dir="/content/CNAPs-final-project/data/split_data", mode="train", image_size=84,
+    def __init__(self, data_dir="/content/CNAPs-final-project/data", mode="train", image_size=84,
                  transform=None, loader=default_loader, gray_loader=gray_loader, 
                  episode_num=1000, way_num=5, shot_num=5, query_num=5):
         
-        super(DogDataSetLoader, self).__init__()
+        super(DogDataSetReader, self).__init__()
 
     
         # set the paths of the csv files
@@ -108,7 +108,6 @@ class DogDataSetReader(object):
                     if query_num < len(query_imgs):
                         query_imgs = random.sample(query_imgs, query_num)
 
-
                     # the dir of support set
                     query_dir = [path.join(data_dir, 'images', i) for i in query_imgs]
                     support_dir = [path.join(data_dir, 'images', i) for i in support_imgs]
@@ -123,7 +122,6 @@ class DogDataSetReader(object):
 
             
         elif mode == "val":
-
             # store all the classes and images into a dict
             class_img_dict = {}
             with open(val_csv) as f_csv:
@@ -149,20 +147,23 @@ class DogDataSetReader(object):
                 e += 1
                 temp_list = random.sample(class_list, way_num)
                 label_num = -1
-
+                # temp list: N classes 
                 for item in temp_list:
+                    #  for each class(item)
                     label_num += 1
+                    #  imgs_set: all images in this class
                     imgs_set = class_img_dict[item]
+                    # support_imgs: K shot of images from the class(image name)
                     support_imgs = random.sample(imgs_set, shot_num)
+                    # all other images not in support_imgs (image name)
                     query_imgs = [val for val in imgs_set if val not in support_imgs]
 
                     if query_num<len(query_imgs):
                         query_imgs = random.sample(query_imgs, query_num)
 
-
                     # the dir of support set
-                    query_dir = [path.join(data_dir, 'images', i) for i in query_imgs]
-                    support_dir = [path.join(data_dir, 'images', i) for i in support_imgs]
+                    query_dir = [path.join(data_dir, 'Images', i) for i in query_imgs]
+                    support_dir = [path.join(data_dir, 'Images', i) for i in support_imgs]
 
 
                     data_files = {
