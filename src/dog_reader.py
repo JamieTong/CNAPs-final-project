@@ -9,6 +9,7 @@ from PIL import Image
 import pdb
 import csv
 import sys
+import torchvision.transforms as transforms
 sys.dont_write_bytecode = True
 
 
@@ -63,8 +64,12 @@ class DogDataSetReader(object):
                  episode_num=1000, way_num=5, shot_num=5, query_num=5):
         
         super(DogDataSetReader, self).__init__()
-
-    
+        ImgTransform = transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ])
+        self.transform = ImgTransform
         # set the paths of the csv files
         train_csv = os.path.join(data_dir, 'train.csv')
         val_csv = os.path.join(data_dir, 'val.csv')
@@ -89,35 +94,58 @@ class DogDataSetReader(object):
                         class_img_dict[img_class]=[]
                         class_img_dict[img_class].append(img_name)
             f_csv.close()
+            class_id_dict = {class_name: class_id for class_id, class_name in enumerate(class_img_dict.keys())}
             class_list = class_img_dict.keys()
-
 
             while e < episode_num:
                 # construct each episode
+                # construct each episode
                 episode = []
                 e += 1
+                # temp list = 5 classes
                 temp_list = random.sample(class_list, way_num)
-                label_num = -1 
+                label_num = -1
+                support_path= []
+                query_path= []
+                support_labels = []
+                query_labels = []
 
                 for item in temp_list:
+                    #  for each class(item)
                     label_num += 1
+                    id = class_id_dict[item]
+
+                    #  imgs_set: all images in this class
                     imgs_set = class_img_dict[item]
+                    # support_imgs: K shot of images from the class(image name)
                     support_imgs = random.sample(imgs_set, shot_num)
+            
+                    for i in range(len(support_imgs)):
+                        support_labels.append(i)
+                    # all other images not in support_imgs (image name)
                     query_imgs = [val for val in imgs_set if val not in support_imgs]
 
-                    if query_num < len(query_imgs):
+                    if query_num<len(query_imgs):
                         query_imgs = random.sample(query_imgs, query_num)
 
+                    for i in range (len(query_imgs)):
+                        query_labels.append(i)
                     # the dir of support set
-                    query_dir = [path.join(data_dir, 'images', i) for i in query_imgs]
-                    support_dir = [path.join(data_dir, 'images', i) for i in support_imgs]
-
-                    data_files = {
-                        "query_img": query_dir,
-                        "support_set": support_dir,
-                        "target": label_num
-                    }
-                    episode.append(data_files)
+                    query_dir = [path.join(data_dir, '_images', i) for i in query_imgs]
+                    support_dir = [path.join(data_dir, '_images', i) for i in support_imgs]
+                    
+                    support_path.extend(support_dir)
+                    query_path.extend(query_dir)  
+                    query_labels = np.array(query_labels)
+                    support_labels = np.array(support_labels)
+                
+                data_files = {
+                    "query_path": query_path,
+                    "support_path": support_path,
+                    "query_labels": query_labels,
+                    "support_labels": support_labels
+                }
+                episode.append(data_files)
                 data_list.append(episode)
 
             
@@ -145,33 +173,48 @@ class DogDataSetReader(object):
                 # construct each episode
                 episode = []
                 e += 1
+                # temp list = 5 classes
                 temp_list = random.sample(class_list, way_num)
                 label_num = -1
-                # temp list: N classes 
+                support_path= []
+                query_path= []
+                support_labels = []
+                query_labels = []
+
                 for item in temp_list:
                     #  for each class(item)
                     label_num += 1
+                    id = class_id_dict[item]
+
                     #  imgs_set: all images in this class
                     imgs_set = class_img_dict[item]
                     # support_imgs: K shot of images from the class(image name)
                     support_imgs = random.sample(imgs_set, shot_num)
+            
+                    for i in range(len(support_imgs)):
+                        support_labels.append(i)
                     # all other images not in support_imgs (image name)
                     query_imgs = [val for val in imgs_set if val not in support_imgs]
 
                     if query_num<len(query_imgs):
                         query_imgs = random.sample(query_imgs, query_num)
 
+                    for i in range (len(query_imgs)):
+                        query_labels.append(i)
                     # the dir of support set
-                    query_dir = [path.join(data_dir, 'Images', i) for i in query_imgs]
-                    support_dir = [path.join(data_dir, 'Images', i) for i in support_imgs]
-
-
-                    data_files = {
-                        "query_img": query_dir,
-                        "support_set": support_dir,
-                        "target": label_num
-                    }
-                    episode.append(data_files)
+                    query_dir = [path.join(data_dir, '_images', i) for i in query_imgs]
+                    support_dir = [path.join(data_dir, '_images', i) for i in support_imgs]
+                    
+                    support_path.extend(support_dir)
+                    query_path.extend(query_dir)  
+                
+                data_files = {
+                    "query_path": query_path,
+                    "support_path": support_path,
+                    "query_labels": query_labels,
+                    "support_labels": support_labels
+                }
+                episode.append(data_files)
                 data_list.append(episode)
         else:
 
@@ -212,8 +255,8 @@ class DogDataSetReader(object):
 
 
                     # the dir of support set
-                    query_dir = [path.join(data_dir, 'images', i) for i in query_imgs]
-                    support_dir = [path.join(data_dir, 'images', i) for i in support_imgs]
+                    query_dir = [path.join(data_dir, '_images', i) for i in query_imgs]
+                    support_dir = [path.join(data_dir, '_images', i) for i in support_imgs]
 
 
                     data_files = {
@@ -241,45 +284,40 @@ class DogDataSetReader(object):
             Load an episode each time, including C-way K-shot and Q-query           
         '''
         image_size = self.image_size
+        # len episode_files = 5
         episode_files = self.data_list[index]
-
-        query_images = []
-        query_targets = []
-        support_images = []
-        support_targets = []
-
-        for i in range(len(episode_files)):
-            data_files = episode_files[i]
-
-            # load query images
-            query_dir = data_files['query_img']
-
-            for j in range(len(query_dir)):
-                temp_img = self.loader(query_dir[j])
-
+        #           data_files = {
+        #             "query_path": query_path,
+        #             "support_path": support_path,
+        #             "query_labels": query_labels,
+        #             "support_labels": support_labels
+        #         }
+        query_images_list = []
+        query_labels = episode_files['query_labels']
+        support_images_list = []
+        support_labels = episode_files['support_labels']
+        # episode_files : 25 support images, 25 labels, 25 query images, 25 labels
+        query_path = episode_files['query_path']
+        support_path = episode_files['support_path']
+        for i in range(len(query_path)):
+            temp_query_img = self.loader(query_path[i])
                 # Normalization
-                if self.transform is not None:
-                    temp_img = self.transform(temp_img)
-                query_images.append(temp_img)
-
+            if self.transform is not None:
+                temp_query_img = self.transform(temp_query_img)
+            query_images_list.append(temp_query_img)
 
             # load support images
-            temp_support = []
-            support_dir = data_files['support_set']
-            for j in range(len(support_dir)): 
-                temp_img = self.loader(support_dir[j])
-
+            temp_support_img = self.loader(support_path[i])
                 # Normalization
-                if self.transform is not None:
-                    temp_img = self.transform(temp_img)
-                temp_support.append(temp_img)
-
-            support_images.append(temp_support)
-
-            # read the label
-            target = data_files['target']
-            query_targets.extend(np.tile(target, len(query_dir)))
-            support_targets.extend(np.tile(target, len(support_dir))) 
-        task_dict = {query_images, query_targets,support_images, support_targets}
+            if self.transform is not None:
+                temp_support_img = self.transform(temp_support_img)
+            support_images_list.append(temp_support_img)
+        query_images = torch.stack(query_images_list)
+        support_images = torch.stack(support_images_list)
+        task_dict = {
+                'context_images':query_images,
+                'context_labels': query_labels, 
+                'target_images': support_images, 
+                'target_labels': support_labels}
         return task_dict       
         # return (query_images, query_targets, support_images, support_targets)

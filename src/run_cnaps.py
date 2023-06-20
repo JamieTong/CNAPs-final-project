@@ -54,15 +54,6 @@ def main():
 class Learner:
     def __init__(self):
         self.args = self.parse_command_line()
-        data_dir = "/content/CNAPs-final-project/data/split_data"
-        mode = "train"
-        image_size = 84
-        transform = None
-        episode_num = 1000
-        way_num = 5
-        shot_num = 5
-        query_num = 5
-
 
         self.checkpoint_dir, self.logfile, self.checkpoint_path_validation, self.checkpoint_path_final \
             = get_log_files(self.args.checkpoint_dir, self.args.resume_from_checkpoint, self.args.mode == "test")
@@ -264,17 +255,17 @@ class Learner:
                 print_and_log(self.logfile, '{0:}: {1:3.1f}+/-{2:2.1f}'.format(item, accuracy, accuracy_confidence))
 
     def prepare_task(self, task_dict):
-        context_images_np, context_labels_np = task_dict['context_images'], task_dict['context_labels']
-        target_images_np, target_labels_np = task_dict['target_images'], task_dict['target_labels']
+        context_images, context_labels_np = task_dict['context_images'], task_dict['context_labels']
+        target_images, target_labels_np = task_dict['target_images'], task_dict['target_labels']
 
-        context_images_np = context_images_np.transpose([0, 3, 1, 2])
-        context_images_np, context_labels_np = self.shuffle(context_images_np, context_labels_np)
-        context_images = torch.from_numpy(context_images_np)
+        # context_images_np = context_images_np.transpose([0, 3, 1, 2])
+        # context_images_np, context_labels_np = self.shuffle(context_images_np, context_labels_np)
+        # context_images = torch.from_numpy(context_images_np)
         context_labels = torch.from_numpy(context_labels_np)
 
-        target_images_np = target_images_np.transpose([0, 3, 1, 2])
-        target_images_np, target_labels_np = self.shuffle(target_images_np, target_labels_np)
-        target_images = torch.from_numpy(target_images_np)
+        # target_images_np = target_images_np.transpose([0, 3, 1, 2])
+        # target_images_np, target_labels_np = self.shuffle(target_images_np, target_labels_np)
+        # target_images = torch.from_numpy(target_images_np)
         target_labels = torch.from_numpy(target_labels_np)
 
         context_images = context_images.to(self.device)
